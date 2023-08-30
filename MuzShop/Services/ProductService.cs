@@ -12,12 +12,12 @@ namespace MuzShop.Services
     public class ProductService : IProductService
     {
         private readonly ApplicationContext _context;
-        //private readonly IMemoryCache _cache;
+        private readonly IMemoryCache _cache;
 
         public ProductService(ApplicationContext context, IMemoryCache cache)
         {
             _context = context;
-            //_cache = cache;
+            _cache = cache;
         }
 
         public async Task<Guid> AddAsync(Guid typeId, string name, string vendor, string model, string description, decimal price, int amount)
@@ -36,7 +36,15 @@ namespace MuzShop.Services
             product.Amount = amount;
 
             await _context.AddAsync(product);
-            await _context.SaveChangesAsync();
+            int n = await _context.SaveChangesAsync();
+
+            if (n > 0)
+            {
+                _cache.Set(product.Id, product, new MemoryCacheEntryOptions
+                {
+                    AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5)
+                });
+            }
             return product.Id;
         }
 
@@ -46,6 +54,7 @@ namespace MuzShop.Services
                 ?? throw new NotFoundException(nameof(_context.Products), productId);
 
             _context.Products.Remove(product);
+            _cache.Remove(product.Id);
             await _context.SaveChangesAsync();
         }
 
@@ -67,16 +76,35 @@ namespace MuzShop.Services
             product.Amount = amount;
 
             _context.Update(product);
-            await _context.SaveChangesAsync();
+            int n = await _context.SaveChangesAsync();
+
+            if (n > 0)
+            {
+                _cache.Set(product.Id, product, new MemoryCacheEntryOptions
+                {
+                    AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5)
+                });
+            }
             return product.Id;
         }
 
         public async Task<Product> GetAsync(Guid productId)
         {
-            var product = await _context.Products.SingleOrDefaultAsync(p => p.Id == productId)
-                ?? throw new NotFoundException(nameof(_context.Products), productId);
+            Product product = null;
 
-            product.Type = await _context.ProductTypes.SingleOrDefaultAsync(type => type.Id == product.TypeId);
+            if(!_cache.TryGetValue(productId, out product))
+            {
+                product = await _context.Products.SingleOrDefaultAsync(p => p.Id == productId)
+                    ?? throw new NotFoundException(nameof(_context.Products), productId);
+
+                product.Type = await _context.ProductTypes.SingleOrDefaultAsync(type => type.Id == product.TypeId)
+                    ?? throw new NotFoundException(nameof(_context.ProductTypes), productId);
+
+                _cache.Set(product.Id, product, new MemoryCacheEntryOptions
+                {
+                    AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5)
+                });
+            }
 
             return product;
         }
