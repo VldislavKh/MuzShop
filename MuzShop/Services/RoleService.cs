@@ -3,15 +3,18 @@ using Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using MuzShop.ExceptionMiddleware.CustomExceptions;
 using MuzShop.Interfaces.ServiceInterfaces;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace MuzShop.Services
 {
     public class RoleService : IRoleService
     {
         private readonly ApplicationContext _context;
-        public RoleService(ApplicationContext context) 
+        private readonly IMemoryCache _cache;
+        public RoleService(ApplicationContext context, IMemoryCache cache) 
         {
             _context = context;
+            _cache = cache;
         }
 
         public async Task<Guid> AddAsync(string name)
@@ -20,7 +23,15 @@ namespace MuzShop.Services
             role.Name = name;
 
             await _context.AddAsync(role);
-            await _context.SaveChangesAsync();
+            int n = await _context.SaveChangesAsync();
+
+            if (n > 0)
+            {
+                _cache.Set(role.Id, role, new MemoryCacheEntryOptions
+                {
+                    AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5)
+                });
+            }
 
             return role.Id;
         }
@@ -31,6 +42,7 @@ namespace MuzShop.Services
                 ?? throw new NotFoundException(nameof(_context.Roles), id);
 
             _context.Remove(role);
+            _cache.Remove(role.Id);
             await _context.SaveChangesAsync();
         }
 
@@ -41,8 +53,17 @@ namespace MuzShop.Services
 
         public async Task<Role> GetAsync(Guid id)
         {
-            var role = await _context.Roles.SingleOrDefaultAsync(r => r.Id == id)
-                ?? throw new NotFoundException(nameof(_context.Roles), id);
+            Role role = null;
+            if (!_cache.TryGetValue(id, out role))
+            {
+                role = await _context.Roles.SingleOrDefaultAsync(r => r.Id == id)
+                    ?? throw new NotFoundException(nameof(_context.Roles), id);
+
+                _cache.Set(role.Id, role, new MemoryCacheEntryOptions
+                {
+                    AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5)
+                });
+            }
 
             return role;
         }
