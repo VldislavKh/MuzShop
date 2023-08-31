@@ -25,6 +25,7 @@ namespace MuzShop.Controllers
             return Ok(id);
         }
 
+        [Authorize(Roles = "admin")]
         [HttpDelete("[action]/{id}")]
         public async Task<IActionResult> DeleteRole(Guid id, CancellationToken cancellationToken)
         {
@@ -32,6 +33,7 @@ namespace MuzShop.Controllers
             return NoContent();
         }
 
+        [Authorize(Roles = "admin, moderator")]
         [HttpGet("[action]")]
         public async Task<IActionResult> GetAllRoles(CancellationToken cancellationToken)
         {
@@ -39,6 +41,7 @@ namespace MuzShop.Controllers
             return Ok(roles);
         }
 
+        [Authorize(Roles = "admin, moderator")]
         [HttpGet("[action]/{id}")]
         public async Task<IActionResult> GetRole(Guid id, CancellationToken cancellationToken)
         {

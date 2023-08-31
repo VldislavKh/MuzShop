@@ -1,4 +1,5 @@
 ﻿using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MuzShop.CQ.Commands.ProductCommands;
 using MuzShop.CQ.Commands.ProductTypeCommands;
@@ -25,6 +26,7 @@ namespace MuzShop.Controllers
             return Ok(id);
         }
 
+        [Authorize(Roles = "admin")]
         [HttpDelete("[action]/{id}")]
         public async Task<IActionResult> DeleteProductType(Guid id, CancellationToken cancellationToken)
         {
@@ -32,6 +34,7 @@ namespace MuzShop.Controllers
             return Ok();
         }
 
+        [Authorize(Roles = "admin, moderator")]
         [HttpPatch("[action]")]
         public async Task<ActionResult<int>> UpdateProductType(UpdateProductTypeCommand command, CancellationToken cancellationToken)
         {
@@ -39,6 +42,7 @@ namespace MuzShop.Controllers
             return Ok(productTypeId);
         }
 
+        [Authorize(Roles = "admin, moderator")]
         [HttpGet("[action]/{id}")]
         public async Task<IActionResult> GetProductType(Guid id, CancellationToken cancellationToken)
         {
@@ -46,6 +50,7 @@ namespace MuzShop.Controllers
             return Ok(productType);
         }
 
+        [Authorize(Roles = "admin, moderator")]
         [HttpGet("[action]")]
         public async Task<IActionResult> GetAllProductTypes(CancellationToken cancellationToken)
         {
