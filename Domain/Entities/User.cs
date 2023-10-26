@@ -22,5 +22,11 @@ namespace Domain.Entities
         public Guid RoleId { get; set; }
 
         public Role? Role { get; set; }
+
+        [Column("Избранное")]
+        public List<Product> WishList { get; set; } = new List<Product>();
+
+        [Column("Корзина")]
+        public List<Product> ShoppingBasket { get; set; } = new List<Product>();
     }
 }

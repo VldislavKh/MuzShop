@@ -33,6 +33,7 @@ namespace MuzShop.Controllers
             return NoContent();
         }
 
+        [Authorize(Roles = "admin, moderator")]
         [HttpPatch("[action]")]
         public async Task<ActionResult<Guid>> UpdateUser(UpdateUserCommand command, CancellationToken cancellationToken)
         {
@@ -41,7 +42,7 @@ namespace MuzShop.Controllers
         }
 
 
-        [Authorize(Roles = "admin")]
+        [Authorize(Roles = "admin, moderator")]
         [HttpGet("[action]")]
         public async Task<IActionResult> GetAllUsers(CancellationToken cancellationToken)
         {
@@ -49,6 +50,7 @@ namespace MuzShop.Controllers
             return Ok(users);
         }
 
+        [Authorize(Roles = "admin, moderator")]
         [HttpGet("[action]/{id}")]
         public async Task<IActionResult> GetUser(Guid id, CancellationToken cancellationToken)
         {

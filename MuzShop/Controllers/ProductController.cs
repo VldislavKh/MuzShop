@@ -19,11 +19,26 @@ namespace MuzShop.Controllers
         }
 
         [HttpPost("[action]")]
-        public async Task<ActionResult<int>> AddProduct([FromBody] AddProductCommand command, CancellationToken cancellationToken)
+        public async Task<ActionResult<Guid>> AddProduct([FromBody] AddProductCommand command, CancellationToken cancellationToken)
         {
             var id = await _mediator.Send(command, cancellationToken);
             return Ok(id);
         }
+
+        [HttpPost("[action]")]
+        public async Task<ActionResult<Guid>> AddProductToWishList([FromBody] AddProductToWishListCommand command, CancellationToken cancellationToken)
+        {
+            var id = await _mediator.Send(command, cancellationToken);
+            return Ok(id);
+        }
+
+        [HttpPost("[action]")]
+        public async Task<ActionResult<Guid>> AddProductToShoppingBasket([FromBody] AddProductToShoppingBasketCommand command, CancellationToken cancellationToken)
+        {
+            var id = await _mediator.Send(command, cancellationToken);
+            return Ok(id);
+        }
+
 
         [Authorize(Roles = "admin")]
         [HttpDelete("[action]/{id}")]

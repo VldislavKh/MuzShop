@@ -113,5 +113,61 @@ namespace MuzShop.Services
         {
             return await _context.Products.ToListAsync();
         }
+
+        public async Task<Guid> AddToShoppingBasket(Guid productId, Guid userId)
+        {
+            Product product = null;
+
+            if (!_cache.TryGetValue(productId, out product))
+            {
+                product = await _context.Products.SingleOrDefaultAsync(p => p.Id == productId)
+                    ?? throw new NotFoundException(nameof(_context.Products), productId);
+            }
+
+            var user = await _context.Users.SingleOrDefaultAsync(u => u.Id == userId)
+               ?? throw new NotFoundException(nameof(_context.Users), userId);
+
+            user.ShoppingBasket.Add(product);
+            _context.Update(user);
+
+            int n = await _context.SaveChangesAsync();
+            if (n > 0)
+            {
+                _cache.Set(product.Id, product, new MemoryCacheEntryOptions
+                {
+                    AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5)
+                });
+            }
+
+            return product.Id;
+        }
+
+        public async Task<Guid> AddToWishList(Guid productId, Guid userId)
+        {
+            Product product = null;
+
+            if (!_cache.TryGetValue(productId, out product))
+            {
+                product = await _context.Products.SingleOrDefaultAsync(p => p.Id == productId)
+                    ?? throw new NotFoundException(nameof(_context.Products), productId);
+            }
+
+            var user = await _context.Users.SingleOrDefaultAsync(u => u.Id == userId)
+               ?? throw new NotFoundException(nameof(_context.Users), userId);
+
+            user.WishList.Add(product);
+            _context.Update(user);
+
+            int n = await _context.SaveChangesAsync();
+            if (n > 0)
+            {
+                _cache.Set(product.Id, product, new MemoryCacheEntryOptions
+                {
+                    AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5)
+                });
+            }
+
+            return product.Id;
+        }
     }
 }

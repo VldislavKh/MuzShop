@@ -30,7 +30,9 @@ namespace MuzShop.Services
             user.Password = CreateSHA256(password);
             user.RoleId = roleId;
             user.Role = role;
-            
+            user.WishList = new List<Product>();
+            user.ShoppingBasket = new List<Product>();
+
             await _context.AddAsync(user);
             int n = await _context.SaveChangesAsync();
 
@@ -66,6 +68,7 @@ namespace MuzShop.Services
             user.Password = CreateSHA256(password);
             user.RoleId = roleId;
             user.Role = role;
+            
 
             _context.Update(user);
             int n = await _context.SaveChangesAsync();

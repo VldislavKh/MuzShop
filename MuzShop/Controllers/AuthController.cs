@@ -26,7 +26,9 @@ namespace MuzShop.Controllers
             if (user != null)
             {
                 //Generate JWT
-                return Ok(await _mediator.Send(new GenerateJwtCommand { User = user }));
+                return Ok(await _mediator
+                    .Send(new GenerateJwtCommand { 
+                        User = user }));
             }
 
             return Unauthorized();

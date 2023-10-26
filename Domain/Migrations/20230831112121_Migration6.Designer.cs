@@ -3,6 +3,7 @@ using System;
 using Domain.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Domain.Migrations
 {
     [DbContext(typeof(ApplicationContext))]
-    partial class ApplicationContextModelSnapshot : ModelSnapshot
+    [Migration("20230831112121_Migration6")]
+    partial class Migration6
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -51,6 +54,9 @@ namespace Domain.Migrations
                         .HasColumnType("numeric")
                         .HasColumnName("Цена, руб.");
 
+                    b.Property<Guid?>("ShoppingBasketId")
+                        .HasColumnType("uuid");
+
                     b.Property<Guid?>("TypeId")
                         .HasColumnType("uuid")
                         .HasColumnName("Id типа товара");
@@ -60,9 +66,16 @@ namespace Domain.Migrations
                         .HasColumnType("text")
                         .HasColumnName("Производитель");
 
+                    b.Property<Guid?>("WishListId")
+                        .HasColumnType("uuid");
+
                     b.HasKey("Id");
 
+                    b.HasIndex("ShoppingBasketId");
+
                     b.HasIndex("TypeId");
+
+                    b.HasIndex("WishListId");
 
                     b.ToTable("Products");
                 });
@@ -104,6 +117,24 @@ namespace Domain.Migrations
                     b.ToTable("Roles");
                 });
 
+            modelBuilder.Entity("Domain.Entities.ShoppingBasket", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("Id пользователя");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId")
+                        .IsUnique();
+
+                    b.ToTable("ShoppingBaskets");
+                });
+
             modelBuilder.Entity("Domain.Entities.User", b =>
                 {
                     b.Property<Guid>("Id")
@@ -131,43 +162,48 @@ namespace Domain.Migrations
                     b.ToTable("Users");
                 });
 
-            modelBuilder.Entity("ProductUser", b =>
+            modelBuilder.Entity("Domain.Entities.WishList", b =>
                 {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
                     b.Property<Guid>("UserId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("Id пользователя");
 
-                    b.Property<Guid>("WishListId")
-                        .HasColumnType("uuid");
+                    b.HasKey("Id");
 
-                    b.HasKey("UserId", "WishListId");
+                    b.HasIndex("UserId")
+                        .IsUnique();
 
-                    b.HasIndex("WishListId");
-
-                    b.ToTable("ProductUser");
-                });
-
-            modelBuilder.Entity("ProductUser1", b =>
-                {
-                    b.Property<Guid>("ShoppingBasketId")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("User1Id")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("ShoppingBasketId", "User1Id");
-
-                    b.HasIndex("User1Id");
-
-                    b.ToTable("ProductUser1");
+                    b.ToTable("WishLists");
                 });
 
             modelBuilder.Entity("Domain.Entities.Product", b =>
                 {
+                    b.HasOne("Domain.Entities.ShoppingBasket", null)
+                        .WithMany("Products")
+                        .HasForeignKey("ShoppingBasketId");
+
                     b.HasOne("Domain.Entities.ProductType", "Type")
                         .WithMany()
                         .HasForeignKey("TypeId");
 
+                    b.HasOne("Domain.Entities.WishList", null)
+                        .WithMany("Products")
+                        .HasForeignKey("WishListId");
+
                     b.Navigation("Type");
+                });
+
+            modelBuilder.Entity("Domain.Entities.ShoppingBasket", b =>
+                {
+                    b.HasOne("Domain.Entities.User", null)
+                        .WithOne("ShoppingBasket")
+                        .HasForeignKey("Domain.Entities.ShoppingBasket", "UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Domain.Entities.User", b =>
@@ -181,34 +217,32 @@ namespace Domain.Migrations
                     b.Navigation("Role");
                 });
 
-            modelBuilder.Entity("ProductUser", b =>
+            modelBuilder.Entity("Domain.Entities.WishList", b =>
                 {
                     b.HasOne("Domain.Entities.User", null)
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Domain.Entities.Product", null)
-                        .WithMany()
-                        .HasForeignKey("WishListId")
+                        .WithOne("WishList")
+                        .HasForeignKey("Domain.Entities.WishList", "UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("ProductUser1", b =>
+            modelBuilder.Entity("Domain.Entities.ShoppingBasket", b =>
                 {
-                    b.HasOne("Domain.Entities.Product", null)
-                        .WithMany()
-                        .HasForeignKey("ShoppingBasketId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                    b.Navigation("Products");
+                });
+
+            modelBuilder.Entity("Domain.Entities.User", b =>
+                {
+                    b.Navigation("ShoppingBasket")
                         .IsRequired();
 
-                    b.HasOne("Domain.Entities.User", null)
-                        .WithMany()
-                        .HasForeignKey("User1Id")
-                        .OnDelete(DeleteBehavior.Cascade)
+                    b.Navigation("WishList")
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("Domain.Entities.WishList", b =>
+                {
+                    b.Navigation("Products");
                 });
 #pragma warning restore 612, 618
         }

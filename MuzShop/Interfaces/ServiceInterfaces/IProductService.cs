@@ -13,5 +13,9 @@ namespace MuzShop.Interfaces.ServiceInterfaces
         public Task<Product> GetAsync(Guid productId);
 
         public Task<List<Product>> GetAllAsync();
+
+        public Task<Guid> AddToWishList(Guid productId, Guid userId);
+
+        public Task<Guid> AddToShoppingBasket(Guid productId, Guid userId);
     }
 }
